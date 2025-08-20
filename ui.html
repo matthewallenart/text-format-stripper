@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #ffffff;
+      height: 560px;
+      box-sizing: border-box;
+    }
+    
+    .container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      height: 100%;
+    }
+    
+    .title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #000000;
+      margin-bottom: 8px;
+    }
+    
+    .description {
+      font-size: 13px;
+      color: #666666;
+      line-height: 1.4;
+      margin-bottom: 8px;
+    }
+    
+    .input-section {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .label {
+      font-size: 12px;
+      font-weight: 500;
+      color: #333333;
+    }
+    
+    .textarea {
+      flex: 1;
+      border: 1px solid #E5E5E5;
+      border-radius: 6px;
+      padding: 12px;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 13px;
+      line-height: 1.5;
+      resize: none;
+      background: #FAFAFA;
+      color: #333333;
+      min-height: 100px;
+    }
+    
+    .textarea:focus {
+      outline: none;
+      border-color: #000000;
+      background: #ffffff;
+    }
+    
+    .textarea::placeholder {
+      color: #999999;
+    }
+    
+    .output-section {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .output-area {
+      flex: 1;
+      border: 1px solid #E5E5E5;
+      border-radius: 6px;
+      padding: 12px;
+      background: #F8F8F8;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 13px;
+      line-height: 1.5;
+      color: #333333;
+      overflow-y: auto;
+      min-height: 100px;
+    }
+    
+    .button-group {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .button {
+      flex: 1;
+      background: #000000;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 10px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    
+    .button:hover {
+      background: #292929;
+    }
+    
+    .button:active {
+      background: #000000;
+    }
+    
+    .button:disabled {
+      background: #CCCCCC;
+      cursor: not-allowed;
+    }
+    
+    .button-secondary {
+      background: #F0F0F0;
+      color: #333333;
+    }
+    
+    .button-secondary:hover:not(:disabled) {
+      background: #E6E6E6;
+    }
+    
+    .button-secondary:active {
+      background: #DDDDDD;
+    }
+    
+    .message {
+      padding: 10px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      margin-top: 8px;
+    }
+    
+    .success {
+      background: #E8F5E8;
+      color: #2D6A2D;
+      border: 1px solid #C4E1C4;
+    }
+    
+    .error {
+      background: #FDF2F2;
+      color: #C53030;
+      border: 1px solid #FEB2B2;
+    }
+    
+    .info {
+      background: #EBF8FF;
+      color: #2B6CB0;
+      border: 1px solid #BEE3F8;
+    }
+    
+    .stats {
+      font-size: 11px;
+      color: #888888;
+      text-align: right;
+    }
+    
+    .header {
+      margin-bottom: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="title">Text Format Stripper</div>
+      <div class="description">
+        Paste formatted text to remove HTML tags, markdown, and other formatting. Perfect for cleaning up copy-pasted content.
+      </div>
+    </div>
+    
+    <div class="input-section">
+      <label class="label" for="input-text">Input Text (with formatting)</label>
+      <textarea 
+        id="input-text" 
+        class="textarea" 
+        placeholder="Paste your formatted text here..."
+        oninput="handleInputChange()"
+      ></textarea>
+      <div class="stats" id="input-stats">0 characters</div>
+    </div>
+    
+    <div class="button-group">
+      <button class="button" id="strip-btn" onclick="stripFormatting()" disabled>
+        Strip Formatting
+      </button>
+      <button class="button button-secondary" id="clear-btn" onclick="clearAll()">
+        Clear All
+      </button>
+    </div>
+    
+    <div class="output-section">
+      <label class="label">Plain Text Output</label>
+      <div id="output-text" class="output-area">
+        Cleaned text will appear here...
+      </div>
+      <div class="stats" id="output-stats">0 characters</div>
+      <button class="button" id="copy-btn-inline" onclick="copyToClipboard()" disabled>
+        Copy to Clipboard
+      </button>
+    </div>
+    
+    <div id="message" style="display: none;"></div>
+  </div>
+
+  <script>
+    let cleanedText = '';
+    
+    function handleInputChange() {
+      const input = document.getElementById('input-text');
+      const count = input.value.length;
+      const hasText = input.value.trim().length > 0;
+      
+      document.getElementById('input-stats').textContent = count + ' characters';
+      document.getElementById('strip-btn').disabled = !hasText;
+    }
+    
+    function stripFormatting() {
+      const input = document.getElementById('input-text');
+      const text = input.value;
+      
+      console.log('Strip formatting called with text:', text);
+      
+      if (!text.trim()) {
+        showMessage('Please enter some text to strip formatting from.', 'error');
+        return;
+      }
+      
+      console.log('Sending message to plugin...');
+      parent.postMessage({ pluginMessage: { type: 'strip-text', text: text } }, '*');
+    }
+    
+    function clearAll() {
+      document.getElementById('input-text').value = '';
+      document.getElementById('output-text').textContent = 'Cleaned text will appear here...';
+      document.getElementById('input-stats').textContent = '0 characters';
+      document.getElementById('output-stats').textContent = '0 characters';
+      document.getElementById('copy-btn-inline').disabled = true;
+      document.getElementById('strip-btn').disabled = true;
+      cleanedText = '';
+      hideMessage();
+    }
+    
+    function copyToClipboard() {
+      if (!cleanedText) {
+        showMessage('No text to copy. Please strip formatting first.', 'error');
+        return;
+      }
+      
+      navigator.clipboard.writeText(cleanedText).then(function() {
+        showMessage('Text copied to clipboard!', 'success');
+      }).catch(function() {
+        showMessage('Failed to copy text to clipboard', 'error');
+      });
+    }
+    
+    function showMessage(text, type) {
+      const messageEl = document.getElementById('message');
+      messageEl.textContent = text;
+      messageEl.className = 'message ' + type;
+      messageEl.style.display = 'block';
+      
+      setTimeout(function() {
+        hideMessage();
+      }, 4000);
+    }
+    
+    function hideMessage() {
+      document.getElementById('message').style.display = 'none';
+    }
+    
+    window.onmessage = function(event) {
+      console.log('UI received message:', event.data);
+      const msg = event.data.pluginMessage;
+      
+      if (msg && msg.type === 'text-stripped') {
+        console.log('Processing stripped text:', msg.text);
+        cleanedText = msg.text || '';
+        const outputEl = document.getElementById('output-text');
+        outputEl.textContent = cleanedText || 'No text content found.';
+        
+        const outputStats = document.getElementById('output-stats');
+        outputStats.textContent = cleanedText.length + ' characters';
+        
+        document.getElementById('copy-btn-inline').disabled = !cleanedText;
+        
+        if (!cleanedText) {
+          showMessage('No content found to clean.', 'info');
+        }
+      } else if (msg && msg.type === 'error') {
+        console.log('Received error:', msg.message);
+        showMessage(msg.message || 'An error occurred', 'error');
+      }
+    };
+    
+    // Initialize when page loads
+    handleInputChange();
+  </script>
+</body>
+</html>
