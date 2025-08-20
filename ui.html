@@ -135,6 +135,8 @@
       background: #DDDDDD;
     }
     
+
+    
     .message {
       padding: 10px 12px;
       border-radius: 6px;
@@ -246,7 +248,11 @@
       document.getElementById('output-text').textContent = 'Cleaned text will appear here...';
       document.getElementById('input-stats').textContent = '0 characters';
       document.getElementById('output-stats').textContent = '0 characters';
-      document.getElementById('copy-btn-inline').disabled = true;
+      
+      const copyBtn = document.getElementById('copy-btn-inline');
+      copyBtn.disabled = true;
+      copyBtn.textContent = 'Copy to Clipboard';
+      
       document.getElementById('strip-btn').disabled = true;
       cleanedText = '';
       hideMessage();
@@ -258,11 +264,40 @@
         return;
       }
       
-      navigator.clipboard.writeText(cleanedText).then(function() {
-        showMessage('Text copied to clipboard!', 'success');
-      }).catch(function() {
+      const copyBtn = document.getElementById('copy-btn-inline');
+      
+      try {
+        // Create a temporary textarea element
+        const tempTextArea = document.createElement('textarea');
+        tempTextArea.value = cleanedText;
+        tempTextArea.style.position = 'fixed';
+        tempTextArea.style.left = '-999999px';
+        tempTextArea.style.top = '-999999px';
+        document.body.appendChild(tempTextArea);
+        
+        // Select and copy the text
+        tempTextArea.focus();
+        tempTextArea.select();
+        const successful = document.execCommand('copy');
+        
+        // Clean up
+        document.body.removeChild(tempTextArea);
+        
+        if (successful) {
+          // Change button text to show success
+          copyBtn.textContent = 'Copied!';
+          
+          // Revert button back to original state after 2 seconds
+          setTimeout(function() {
+            copyBtn.textContent = 'Copy to Clipboard';
+          }, 2000);
+        } else {
+          throw new Error('Copy command failed');
+        }
+      } catch (error) {
+        console.error('Copy failed:', error);
         showMessage('Failed to copy text to clipboard', 'error');
-      });
+      }
     }
     
     function showMessage(text, type) {
@@ -293,7 +328,10 @@
         const outputStats = document.getElementById('output-stats');
         outputStats.textContent = cleanedText.length + ' characters';
         
-        document.getElementById('copy-btn-inline').disabled = !cleanedText;
+        const copyBtn = document.getElementById('copy-btn-inline');
+        copyBtn.disabled = !cleanedText;
+        // Reset button text and style when new content is available
+        copyBtn.textContent = 'Copy to Clipboard';
         
         if (!cleanedText) {
           showMessage('No content found to clean.', 'info');
